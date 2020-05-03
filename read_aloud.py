@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-import pychromecast
+from firebase import firebase
+from google.cloud import storage
 import argparse
 import logging
+import pychromecast
 
 class ReadAloud:
     def parse_args(self):
@@ -24,6 +26,7 @@ class ReadAloud:
                     self.chromecast = cc
             if self.chromecast is None:
                 logging.warn("Device '%s' not found, switch to default" % (device))
+            print(self.chromecast)
 
         if self.chromecast is None:
             self.chromecast = chromecasts.pop(0)
@@ -31,7 +34,7 @@ class ReadAloud:
         logging.debug("Casting to %s" % self.chromecast.device.friendly_name)
 
     def set_loglevel(self, args):
-        if args.verbose >= 1:
+        if args.verbose and args.verbose >= 1:
             logging.basicConfig(level=logging.DEBUG)
 
     def list_chromecasts(self):
@@ -49,11 +52,19 @@ class ReadAloud:
             self.list_chromecasts()
             quit(0)
 
-        self.chromecast = self.select_chromecast(args.device)
+        self.select_chromecast(args.device)
 
+        self.run()
 
     def run(self):
-        pass
+        media = "https://firebasestorage.googleapis.com/v0/b/poetry-f6e45.appspot.com/o/verse%2F23%20%D0%9D%D0%B5%20%D0%B2%D1%8B%D1%85%D0%BE%D0%B4%D0%B8%20%D0%B8%D0%B7%20%D0%BA%D0%BE%D0%BC%D0%BD%D0%B0%D1%82%D1%8B%201970.mp3?alt=media&token=fd05f55d-381e-48a1-86bf-b097b6c58b46"
+        logging.debug("Casting %s" % (media))
+        cc = self.chromecast
+        cc.wait()
+        mc = self.chromecast.media_controller
+        mc.play_media(media, content_type='audio/mpeg')
+        mc.block_until_active()
+        print(mc.status)
 
 
 def main(args):
